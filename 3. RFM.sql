@@ -44,10 +44,6 @@ from
 select * from cte4 where rank=1;
 
 --5) Ai là khách hàng tốt nhất, phân tích dựa vào RFM 
-CREATE TABLE segment_score
-	(segment Varchar,
-	scores Varchar);
-
 with customer_rfm as
 (select customername,
 	current_date - max(orderdate) as R,
