@@ -25,7 +25,7 @@ Các bước thực hiện phân tích RFM thường bao gồm:
 
 Phân tích RFM giúp doanh nghiệp tập trung chiến lược tiếp thị và dịch vụ vào từng nhóm khách hàng cụ thể, tối ưu hóa chăm sóc khách hàng và tăng cường giữ chân, doanh thu và lợi nhuận.
 
-## Về project: 
+## Về project
 1. Tạo database "Project" và bảng "Segment Score"
 
 2. Data Cleaning
