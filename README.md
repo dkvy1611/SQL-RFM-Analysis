@@ -1,5 +1,4 @@
-# RFM segmentation PostgreSQL 
-
+# RFM segmentation
 ## Sơ lược về phân tích RFM
 
 Phân tích RFM (Recency, Frequency, Monetary) là một phương pháp phân loại khách hàng dựa trên ba yếu tố chính: Recency, Frequency và Monetary. Phương pháp này thường được sử dụng trong lĩnh vực quản lý khách hàng và tiếp thị để hiểu rõ hơn về giá trị và hành vi mua sắm của khách hàng.
@@ -26,7 +25,7 @@ Các bước thực hiện phân tích RFM thường bao gồm:
 
 Phân tích RFM giúp doanh nghiệp tập trung chiến lược tiếp thị và dịch vụ vào từng nhóm khách hàng cụ thể, tối ưu hóa chăm sóc khách hàng và tăng cường giữ chân, doanh thu và lợi nhuận.
 
-## Về Project: 
+## Về project: 
 1. Tạo database "Project" và bảng "Segment Score"
 
 2. Data Cleaning
