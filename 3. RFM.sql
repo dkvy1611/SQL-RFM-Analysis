@@ -1,74 +1,93 @@
-select * from public.sales_dataset_rfm_prj;
+SELECT *
+FROM public.sales_dataset_rfm_prj;
+
 --1) Doanh thu theo từng ProductLine, Year và DealSize
-select
-  PRODUCTLINE,
-  YEAR_ID,
-  DEALSIZE,
-  sum(quantityordered*priceeach) as REVENUE
-from public.sales_dataset_rfm_prj
-group by PRODUCTLINE, YEAR_ID, DEALSIZE
-order by PRODUCTLINE, YEAR_ID, DEALSIZE;
+SELECT PRODUCTLINE,
+       YEAR_ID,
+       DEALSIZE,
+       sum(quantityordered*priceeach) AS REVENUE
+FROM public.sales_dataset_rfm_prj
+GROUP BY PRODUCTLINE,
+         YEAR_ID,
+         DEALSIZE
+ORDER BY PRODUCTLINE,
+         YEAR_ID,
+         DEALSIZE;
 
 --2) Tháng có bán nhất mỗi năm?
-with cte2 as
-(select *,
-	rank() over(partition by year_id order by revenue desc) as rank
- from
-	(select year_id, month_id, 
-		sum(quantityordered*priceeach) as REVENUE
-	from public.sales_dataset_rfm_prj
-	group by month_id, year_id) a)
-select year_id, month_id, revenue from cte2 where rank =1;
+WITH cte2 AS
+  (SELECT *,
+          rank() over(PARTITION BY year_id
+                      ORDER BY revenue DESC) AS rank
+   FROM
+     (SELECT year_id,
+             month_id,
+             sum(quantityordered*priceeach) AS REVENUE
+      FROM public.sales_dataset_rfm_prj
+      GROUP BY month_id,
+               year_id) a)
+SELECT year_id,
+       month_id,
+       revenue
+FROM cte2
+WHERE rank =1;
 
 --3) Product line nào được bán nhiều ở tháng 11?
-select month_id, 
-	sum(quantityordered*priceeach) as REVENUE,
-	productline
-from public.sales_dataset_rfm_prj
-where month_id=11
-group by month_id, productline
-order by revenue desc
-limit 1;
+SELECT month_id,
+       sum(quantityordered*priceeach) AS REVENUE,
+       productline
+FROM public.sales_dataset_rfm_prj
+WHERE month_id=11
+GROUP BY month_id,
+         productline
+ORDER BY revenue DESC
+LIMIT 1;
 
 --4) Đâu là sản phẩm có doanh thu tốt nhất ở UK mỗi năm? Xếp hạng các các doanh thu đó theo từng năm.
-with cte4 as
-(select *,
-	rank() over(partition by YEAR_ID order by revenue desc) as rank
-from
-	(select YEAR_ID, PRODUCTLINE,
-		sum(quantityordered*priceeach) as REVENUE
-	from public.sales_dataset_rfm_prj
-	where country = 'UK'
-	group by YEAR_ID, PRODUCTLINE
-	order by year_id asc, REVENUE desc) a)
-select * from cte4 where rank=1;
+WITH cte4 AS
+  (SELECT *,
+          rank() over(PARTITION BY YEAR_ID
+                      ORDER BY revenue DESC) AS rank
+   FROM
+     (SELECT YEAR_ID,
+             PRODUCTLINE,
+             sum(quantityordered*priceeach) AS REVENUE
+      FROM public.sales_dataset_rfm_prj
+      WHERE country = 'UK'
+      GROUP BY YEAR_ID,
+               PRODUCTLINE
+      ORDER BY year_id ASC, REVENUE DESC) a)
+SELECT *
+FROM cte4
+WHERE rank=1;
 
 --5) Ai là khách hàng tốt nhất, phân tích dựa vào RFM 
-with customer_rfm as
-(select customername,
-	current_date - max(orderdate) as R,
-	count(distinct ordernumber) as F,
-	sum(quantityordered*priceeach) as M
-from public.sales_dataset_rfm_prj
-group by customername),
-
-rfm_score as
-(select customername,
-	ntile(5) over (order by r desc) as r_score,
-	ntile(5) over (order by f) as f_score,
-	ntile(5) over (order by m) as m_score
-from customer_rfm),
-
-rfm_final as
-(select customername,
-	cast(r_score as varchar)|| cast(f_score as varchar)|| cast(m_score as varchar)as rfm
-from rfm_score)
-
-select *
-from 
-(select a.customername, b.segment from rfm_final as a
-join public.segment_score as b
-on a.rfm = b.scores) a
-where segment = 'Champions'
+WITH customer_rfm AS
+  (SELECT customername,
+          CURRENT_DATE - max(orderdate) AS R,
+          COUNT(DISTINCT ordernumber) AS F,
+          SUM(quantityordered*priceeach) AS M
+   FROM public.sales_dataset_rfm_prj
+   GROUP BY customername),
+     rfm_score AS
+  (SELECT customername,
+          ntile(5) OVER (
+                         ORDER BY r DESC) AS r_score,
+                        ntile(5) OVER (
+                                       ORDER BY f) AS f_score,
+                                      ntile(5) OVER (
+                                                     ORDER BY m) AS m_score
+   FROM customer_rfm),
+     rfm_final AS
+  (SELECT customername,
+          cast(r_score AS varchar)|| cast(f_score AS varchar)|| cast(m_score AS varchar)AS rfm
+   FROM rfm_score)
+SELECT *
+FROM
+  (SELECT a.customername,
+          b.segment
+   FROM rfm_final AS a
+   JOIN public.segment_score AS b ON a.rfm = b.scores) a
+WHERE SEGMENT = 'Champions';
 
   
