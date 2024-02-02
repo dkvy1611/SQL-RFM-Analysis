@@ -1,4 +1,4 @@
-create table SALES_DATASET_RFM_PRJ
+CREATE TABLE SALES_DATASET_RFM_PRJ
 (
   ordernumber VARCHAR,
   quantityordered VARCHAR,
@@ -26,8 +26,8 @@ create table SALES_DATASET_RFM_PRJ
 
 CREATE TABLE segment_score
 (
-    segment Varchar,
-    scores Varchar)
+    segment VARCHAR,
+    scores VARCHAR)
 
 -- Lần lượt import 2 file sales_data_clean_rfm và segment_score1
 
