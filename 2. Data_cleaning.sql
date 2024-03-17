@@ -91,44 +91,33 @@ WHERE date.orderdate = a.orderdate;
 -- Tìm outlier (nếu có) cho cột QUANTITYORDERED và chọn cách xử lý cho bản ghi đó
 --C1: Boxplot
 WITH a AS
-	SELECT percentile_cont(0.25) within 
-		GROUP (
-                	ORDER BY quantityordered) AS Q1,
-                        	 percentile_cont(0.75) within GROUP (
-                                                            ORDER BY quantityordered) AS Q3,
-                                                                     percentile_cont(0.75) within GROUP (
-                                                                                                          ORDER BY quantityordered) - percentile_cont(0.25) within GROUP (
-                                                                                                                                                                                       ORDER BY quantityordered) AS IQR
-      FROM sales_dataset_rfm_prj,
+	(SELECT 
+		percentile_cont(0.25) within GROUP (ORDER BY quantityordered) AS Q1,
+		percentile_cont(0.75) within GROUP (ORDER BY quantityordered) AS Q3,
+        	percentile_cont(0.75) within GROUP (ORDER BY quantityordered) - percentile_cont(0.25) within GROUP (ORDER BY quantityordered) AS IQR
+      FROM sales_dataset_rfm_prj),
 	
-	boxplot AS
-  		(SELECT 
-			Q1 - 1.5*IQR AS MIN,
-         	 	Q3 + 1.5*IQR AS MAX
-   		FROM a)
+boxplot AS
+  	(SELECT 
+		Q1 - 1.5*IQR AS MIN,
+         	Q3 + 1.5*IQR AS MAX
+   	FROM a)
 	
 SELECT *
 FROM sales_dataset_rfm_prj
-WHERE quantityordered <
-    (SELECT MIN
-     FROM boxplot)
-  OR quantityordered >
-    (SELECT MAX
-     FROM boxplot)
+WHERE quantityordered < (SELECT MIN FROM boxplot)
+  OR quantityordered > (SELECT MAX FROM boxplot)
 
 --C2: z-score
 WITH zscore AS
-  (SELECT *,
-
-     (SELECT avg(quantityordered)
-      FROM sales_dataset_rfm_prj) AS AVG,
-
-     (SELECT stddev(quantityordered)
-      FROM sales_dataset_rfm_prj) AS stddev
+  (SELECT 
+	*,
+	(SELECT avg(quantityordered) FROM sales_dataset_rfm_prj) AS avg,
+	(SELECT stddev(quantityordered) FROM sales_dataset_rfm_prj) AS stddev
    FROM sales_dataset_rfm_prj)
 SELECT *
 FROM zscore
-WHERE abs((quantityordered-AVG)/stddev) > 3
+WHERE ABS((quantityordered - avg)/stddev) > 3
 	
 -- Xử lý:
 -- Thay outlier bằng giá trị trung bình
